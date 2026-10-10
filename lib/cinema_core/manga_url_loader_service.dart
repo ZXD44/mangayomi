@@ -189,6 +189,7 @@ class MangaUrlLoaderService {
     if (extractedImages.isNotEmpty) {
       int idx = 1;
       for (final img in extractedImages) {
+        final narrativeBeat = _generateNarrativeBeat(title, episodeLabel, idx, extractedImages.length);
         pages.add(
           WebtoonPageItem(
             pageIndex: idx,
@@ -196,12 +197,12 @@ class MangaUrlLoaderService {
             bubbles: [
               BubbleAnnotation(
                 id: 'UP-$idx',
-                speechText: idx == 1
-                    ? '$title $episodeLabel: เริ่มฉากการต่อสู้!'
-                    : 'ช่องที่ $idx: ดำเนินเรื่องราวต่อเนื่อง...',
-                role: idx % 2 == 0 ? DialogueRole.hero : DialogueRole.narrator,
+                speechText: narrativeBeat,
+                role: idx % 3 == 0
+                    ? DialogueRole.hero
+                    : (idx % 3 == 1 ? DialogueRole.narrator : DialogueRole.villain),
                 boundingBox: const Rect.fromLTWH(0.1, 0.1, 0.8, 0.15),
-                pauseSeconds: 1.2,
+                pauseSeconds: 1.5,
               ),
             ],
           ),
@@ -469,5 +470,24 @@ class MangaUrlLoaderService {
         bubbles: p.bubbles,
       );
     }).toList();
+  }
+
+  static String _generateNarrativeBeat(String mangaTitle, String episodeName, int currentIdx, int totalCount) {
+    if (currentIdx == 1) {
+      return '$mangaTitle $episodeName ยินดีต้อนรับสู่ตอนใหม่ เริ่มต้นฉากสำคัญ!';
+    }
+    if (currentIdx == totalCount) {
+      return 'จบตอนที่อ่านแล้ว โปรดติดตามความมันส์ในตอนต่อไป!';
+    }
+    final progression = (currentIdx / totalCount);
+    if (progression < 0.25) {
+      return 'หน้า $currentIdx: เหตุการณ์กำลังเริ่มต้น ความตึงเครียดค่อยๆ ก่อตัวขึ้นในบริเวณนี้';
+    } else if (progression < 0.5) {
+      return 'หน้า $currentIdx: ปรากฏการเคลื่อนไหวของตัวละคร การปะทะและบทสนทนากำลังเข้มข้นขึ้น!';
+    } else if (progression < 0.75) {
+      return 'หน้า $currentIdx: จังหวะเข้าสู่จุดไคลแมกซ์ การตัดสินใจครั้งสำคัญที่ไม่อาจหลีกเลี่ยง!';
+    } else {
+      return 'หน้า $currentIdx: ผลลัพธ์ของการต่อสู้และการเผชิญหน้า เผยให้เห็นเรื่องราวชวนลุ้นระทึก!';
+    }
   }
 }

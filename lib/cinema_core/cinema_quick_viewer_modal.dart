@@ -19,6 +19,8 @@ class _CinemaQuickViewerModalState extends State<CinemaQuickViewerModal> {
   bool _isFullscreen = false;
   String? _errorMessage;
   MangaStoryChapter? _chapter;
+  String _currentSubtitle = '';
+  int _currentPageIndex = 1;
 
   List<AutoMangaItem> _mangaList = [];
   bool _isLoadingList = true;
@@ -32,10 +34,15 @@ class _CinemaQuickViewerModalState extends State<CinemaQuickViewerModal> {
 
   Future<void> _initTts() async {
     try {
+      await _flutterTts.awaitSpeakCompletion(true);
       await _flutterTts.setLanguage('th-TH');
-      await _flutterTts.setSpeechRate(0.5);
+      await _flutterTts.setSpeechRate(0.48);
       await _flutterTts.setPitch(1.0);
-    } catch (_) {}
+    } catch (_) {
+      try {
+        await _flutterTts.setLanguage('th');
+      } catch (_) {}
+    }
   }
 
   Future<void> _loadMangaFeed() async {
@@ -62,6 +69,7 @@ class _CinemaQuickViewerModalState extends State<CinemaQuickViewerModal> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _currentSubtitle = 'กำลังโหลดข้อมูลมังงะและเตรียมบทพากย์...';
     });
 
     try {
@@ -88,22 +96,42 @@ class _CinemaQuickViewerModalState extends State<CinemaQuickViewerModal> {
     for (int i = 0; i < story.stripImages.length; i++) {
       if (!mounted || !_isPlaying) break;
 
+      setState(() {
+        _currentPageIndex = i + 1;
+      });
+
       if (_scrollController.hasClients) {
         final targetOffset = i * 650.0;
         _scrollController.animateTo(
           targetOffset,
-          duration: const Duration(milliseconds: 1400),
+          duration: const Duration(milliseconds: 1200),
           curve: Curves.easeInOutCubic,
         );
       }
 
-      final pageText = 'หน้าที่ ${i + 1} จากทั้งหมด ${story.stripImages.length} หน้า';
-      await _flutterTts.speak(pageText);
-      await Future.delayed(const Duration(milliseconds: 2600));
+      String narrationText = 'หน้าที่ ${i + 1} จากทั้งหมด ${story.stripImages.length} หน้า';
+      if (i < story.pages.length && story.pages[i].bubbles.isNotEmpty) {
+        narrationText = story.pages[i].bubbles.first.speechText;
+      }
+
+      if (mounted) {
+        setState(() {
+          _currentSubtitle = narrationText;
+        });
+      }
+
+      try {
+        await _flutterTts.speak(narrationText);
+      } catch (_) {}
+
+      await Future.delayed(const Duration(milliseconds: 1500));
     }
 
     if (mounted) {
-      setState(() => _isPlaying = false);
+      setState(() {
+        _isPlaying = false;
+        _currentSubtitle = 'จบการพากย์เสียงในตอนนี้เรียบร้อยแล้ว';
+      });
     }
   }
 
@@ -239,6 +267,80 @@ class _CinemaQuickViewerModalState extends State<CinemaQuickViewerModal> {
                   ),
                 );
               },
+            ),
+
+          // แถบแสดงบทพากย์ / ซับไตเติลแบบ Real-time
+          if (_chapter != null && _currentSubtitle.isNotEmpty)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 96,
+              child: AnimatedOpacity(
+                opacity: _isPlaying ? 1.0 : 0.85,
+                duration: const Duration(milliseconds: 300),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.90),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.6), width: 1.2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.amberAccent.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.volume_up_rounded,
+                          color: Colors.amberAccent,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'บทพากย์ภาษาไทย [หน้า $_currentPageIndex/${_chapter!.stripImages.length}]',
+                                  style: const TextStyle(
+                                    color: Colors.amberAccent,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              _currentSubtitle,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
 
           // แถบควบคุมด้านล่างเมื่อกำลังเล่น
