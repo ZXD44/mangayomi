@@ -52,9 +52,12 @@ jobs:
         uses: seanmiddleditch/gha-setup-ninja@master
 
       - name: Setup Android keystore
+        continue-on-error: true
         run: |
-          echo "${{ secrets.SIGNING_KEY_STORE_BASE64 }}" | base64 -di > android/app/upload-keystore.jks
-          echo "${{ secrets.SIGNING_KEY_PROPERTIES }}" > android/key.properties
+          if [ -n "${{ secrets.SIGNING_KEY_STORE_BASE64 }}" ]; then
+            echo "${{ secrets.SIGNING_KEY_STORE_BASE64 }}" | base64 -di > android/app/upload-keystore.jks
+            echo "${{ secrets.SIGNING_KEY_PROPERTIES }}" > android/key.properties
+          fi
 
       - name: flutter pub get
         run: flutter pub get
@@ -133,9 +136,12 @@ jobs:
                 android/app/src/main/res/drawable-xhdpi/tv_banner.png || true
 
       - name: Setup Android keystore
+        continue-on-error: true
         run: |
-          echo "${{ secrets.SIGNING_KEY_STORE_BASE64 }}" | base64 -di > android/app/upload-keystore.jks
-          echo "${{ secrets.SIGNING_KEY_PROPERTIES }}" > android/key.properties
+          if [ -n "${{ secrets.SIGNING_KEY_STORE_BASE64 }}" ]; then
+            echo "${{ secrets.SIGNING_KEY_STORE_BASE64 }}" | base64 -di > android/app/upload-keystore.jks
+            echo "${{ secrets.SIGNING_KEY_PROPERTIES }}" > android/key.properties
+          fi
 
       - name: flutter pub get
         run: flutter pub get
