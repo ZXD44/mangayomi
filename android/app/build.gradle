@@ -74,7 +74,7 @@ android {
    }
    buildTypes {
        release {
-           signingConfig signingConfigs.release
+           signingConfig = (keystoreProperties['keyAlias'] != null) ? signingConfigs.release : signingConfigs.debug
        }
    }
    repositories {

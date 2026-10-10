@@ -18,6 +18,7 @@ import 'package:mangayomi/utils/item_type_localization.dart';
 import 'package:mangayomi/utils/platform_utils.dart';
 import 'package:mangayomi/modules/browse/providers/browse_initial_tab_provider.dart';
 import 'package:mangayomi/modules/more/settings/browse/providers/browse_state_provider.dart';
+import 'package:mangayomi/cinema_core/cinema_quick_viewer_modal.dart';
 
 class BrowseScreen extends ConsumerStatefulWidget {
   const BrowseScreen({super.key});
@@ -144,6 +145,24 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen>
           : Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                IconButton(
+                  tooltip: 'Cinema Webtoon Mode (พากย์เสียง)',
+                  splashRadius: 20,
+                  focusColor: Theme.of(context).colorScheme.primary
+                      .withValues(alpha: 0.4),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CinemaQuickViewerModal(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.movie_filter_rounded,
+                    color: Colors.amberAccent,
+                  ),
+                ),
                 if (isExtensionTab && ref.watch(developerModeStateProvider))
                   IconButton(
                     focusColor: Theme.of(context).colorScheme.primary
