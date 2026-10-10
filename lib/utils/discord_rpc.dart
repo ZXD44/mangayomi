@@ -30,7 +30,7 @@ class DiscordRPC {
     buttons: [
       const RPCButton(
         label: "Get Mangayomi",
-        url: "https://github.com/kodjodevf/mangayomi",
+        url: "https://github.com/ZXD44/mangayomi",
       ),
       const RPCButton(
         label: "Join us",

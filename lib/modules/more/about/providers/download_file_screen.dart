@@ -211,7 +211,7 @@ class _DownloadFileScreenState extends ConsumerState<DownloadFileScreen> {
             controller: _changelogScrollController,
             child: SelectableText(
               cleanNotes.isEmpty
-                  ? 'Aucune note de version fournie.'
+                  ? 'ไม่มีรายละเอียดบันทึกการอัปเดต'
                   : cleanNotes,
               style: theme.textTheme.bodySmall?.copyWith(
                 height: 1.45,
@@ -412,7 +412,7 @@ class _DownloadFileScreenState extends ConsumerState<DownloadFileScreen> {
         if (mounted) {
           setState(() {
             _isDownloading = false;
-            _errorMessage = 'Échec du téléchargement: $e';
+            _errorMessage = 'เกิดข้อผิดพลาดในการดาวน์โหลด: $e';
           });
         }
       }
@@ -491,7 +491,7 @@ class _DownloadFileScreenState extends ConsumerState<DownloadFileScreen> {
         if (mounted) {
           setState(() {
             _isDownloading = false;
-            _errorMessage = 'Erreur réseau lors du téléchargement.';
+            _errorMessage = 'เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่ายระหว่างดาวน์โหลด';
           });
         }
       },
@@ -513,7 +513,7 @@ class _DownloadFileScreenState extends ConsumerState<DownloadFileScreen> {
           setState(() {
             _isDownloading = false;
             _isInstalling = false;
-            _errorMessage = "Erreur lors de l'écriture du fichier APK.";
+            _errorMessage = 'เกิดข้อผิดพลาดในการบันทึกไฟล์ติดตั้ง APK';
           });
         }
       }

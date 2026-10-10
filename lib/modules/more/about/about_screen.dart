@@ -160,14 +160,27 @@ class AboutScreen extends ConsumerWidget {
                       //   onTap: () {},
                       //   title: const Text('Privacy policy'),
                       // ),
+                      ListTile(
+                        title: const Text('ผู้พัฒนาและดัดแปลง (Creator & Modder)'),
+                        subtitle: const Text(
+                          'ZirconX (ZXD44)\nระบบพากย์เสียงไทยอัตโนมัติ (Cinema Mode) & ตัวดึงการ์ตูนเว็บ',
+                        ),
+                        isThreeLine: true,
+                        onTap: () {
+                          _launchInBrowser(
+                            Uri.parse('https://github.com/ZXD44/mangayomi'),
+                          );
+                        },
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           IconButton(
+                            tooltip: 'GitHub: ZXD44/mangayomi',
                             onPressed: () {
                               _launchInBrowser(
                                 Uri.parse(
-                                  'https://github.com/kodjodevf/mangayomi',
+                                  'https://github.com/ZXD44/mangayomi',
                                 ),
                               );
                             },

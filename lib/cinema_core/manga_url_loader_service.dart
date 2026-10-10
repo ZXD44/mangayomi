@@ -3,6 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'cinema_models.dart';
 
+class AutoMangaItem {
+  final String title;
+  final String detailUrl;
+  final String coverUrl;
+  final String latestChapterUrl;
+  final String latestChapterName;
+  final String sourceName;
+
+  const AutoMangaItem({
+    required this.title,
+    required this.detailUrl,
+    required this.coverUrl,
+    required this.latestChapterUrl,
+    required this.latestChapterName,
+    required this.sourceName,
+  });
+}
+
 class MangaUrlLoaderService {
   static const Map<String, String> defaultHeaders = {
     'User-Agent':
@@ -11,6 +29,71 @@ class MangaUrlLoaderService {
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
     'Accept-Language': 'th,en-US;q=0.9,en;q=0.8',
   };
+
+  /// ดึงรายชื่อการ์ตูนตอนใหม่ล่าสุดจาก Up-Manga อัตโนมัติ (ไม่ต้องกรอกลิงก์เอง)
+  static Future<List<AutoMangaItem>> fetchLatestUpdates() async {
+    final List<AutoMangaItem> items = [];
+    try {
+      final res = await http
+          .get(Uri.parse('https://www.up-manga.com/'), headers: defaultHeaders)
+          .timeout(const Duration(seconds: 12));
+
+      if (res.statusCode == 200) {
+        final html = res.body;
+        final pattern = RegExp(
+          '<div[^>]*class=["\'][^"\']*bsx[^"\']*["\'][^>]*>.*?'
+          '<a[^>]*href=["\']([^"\']+)["\'][^>]*title=["\']([^"\']+)["\'].*?'
+          '<img[^>]*src=["\']([^"\']+)["\']',
+          dotAll: true,
+        );
+
+        final matches = pattern.allMatches(html);
+        for (final m in matches) {
+          final detailUrl = m.group(1) ?? '';
+          final rawTitle = m.group(2) ?? '';
+          final coverUrl = m.group(3) ?? '';
+
+          if (detailUrl.isNotEmpty && rawTitle.isNotEmpty) {
+            items.add(
+              AutoMangaItem(
+                title: rawTitle.trim(),
+                detailUrl: detailUrl.trim(),
+                coverUrl: coverUrl.trim(),
+                latestChapterUrl: detailUrl.trim(),
+                latestChapterName: 'ตอนล่าสุด',
+                sourceName: 'Up-Manga',
+              ),
+            );
+          }
+          if (items.length >= 24) break;
+        }
+      }
+    } catch (_) {}
+
+    if (items.isEmpty) {
+      items.addAll([
+        const AutoMangaItem(
+          title: 'Overgeared จ้าวแห่งยุทธภัณฑ์',
+          detailUrl: 'https://www.up-manga.com/overgeared/',
+          coverUrl:
+              'https://www.up-manga.com/wp-content/uploads/2023/09/Overgeared-จ้าวแห่งยุทธภัณฑ์-222x300.png',
+          latestChapterUrl: 'https://www.up-manga.com/overgeared/',
+          latestChapterName: 'ตอนล่าสุด',
+          sourceName: 'Up-Manga',
+        ),
+        const AutoMangaItem(
+          title: 'Magic Emperor ราชาจอมเวทย์',
+          detailUrl: 'https://www.up-manga.com/magic-emperor/',
+          coverUrl:
+              'https://www.up-manga.com/wp-content/uploads/2023/09/Magic-Emperor-ราชาจอมเวทย์-200x300.jpg',
+          latestChapterUrl: 'https://www.up-manga.com/magic-emperor/',
+          latestChapterName: 'ตอนล่าสุด',
+          sourceName: 'Up-Manga',
+        ),
+      ]);
+    }
+    return items;
+  }
 
   /// ดึงข้อมูลและรูปภาพมังงะ/เว็บตูนจาก URL
   static Future<MangaStoryChapter> loadFromUrl(String rawUrl) async {
@@ -81,6 +164,21 @@ class MangaUrlLoaderService {
                   if (str.isNotEmpty) extractedImages.add(str);
                 }
               }
+            }
+          }
+        }
+
+        // หากเป็นหน้าเรื่องรวม (สารบัญ) ให้สกัดลิงก์ตอนล่าสุดแล้วโหลดต่อทันที
+        if (extractedImages.isEmpty) {
+          final chMatch = RegExp(
+            r'<li[^>]*data-num="[^"]*"[^>]*>.*?<a[^>]*href="([^"]+)"[^>]*>.*?<span[^>]*class="chapternum">([^<]+)</span>',
+            dotAll: true,
+          ).firstMatch(body);
+
+          if (chMatch != null) {
+            final targetChapterUrl = chMatch.group(1);
+            if (targetChapterUrl != null && targetChapterUrl != fullUrl) {
+              return await loadFromUrl(targetChapterUrl);
             }
           }
         }
