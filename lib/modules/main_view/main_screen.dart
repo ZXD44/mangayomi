@@ -250,21 +250,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         }
       }
     });
-    Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 2), () async {
       if (!mounted || isTv) return;
-      ref.listenManual<AsyncValue<UpdateInfo?>>(checkForUpdateProvider, (
-        _,
-        next,
-      ) {
-        next.whenData((updateInfo) {
-          if (updateInfo != null && mounted) {
-            showDialog(
-              context: context,
-              builder: (_) => DownloadFileScreen(updateAvailable: updateInfo),
-            );
-          }
-        });
-      });
+      try {
+        final updateInfo = await ref.read(checkForUpdateProvider.future);
+        if (updateInfo != null && mounted) {
+          showDialog(
+            context: context,
+            builder: (_) => DownloadFileScreen(updateAvailable: updateInfo),
+          );
+        }
+      } catch (_) {}
     });
   }
 

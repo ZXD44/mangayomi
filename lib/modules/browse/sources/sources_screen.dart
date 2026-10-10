@@ -12,6 +12,7 @@ import 'package:mangayomi/modules/widgets/extension_server_warning_banner.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
 import 'package:mangayomi/utils/language.dart';
 import 'package:mangayomi/utils/platform_utils.dart';
+import 'package:mangayomi/cinema_core/cinema_quick_viewer_modal.dart';
 
 final getSourcesStreamProvider = StreamProvider.family<List<Source>, ItemType>((
   ref,
@@ -98,55 +99,144 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
               .where((e) => showNSFW || !(e.isNsfw ?? false))
               .toList();
           if (sources.isEmpty) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const ExtensionServerWarningBanner(),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(context.l10n.no_sources_installed),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      final extensionIndex = widget.tabs.indexWhere(
-                        (t) =>
-                            t.type == widget.itemType &&
-                            t.kind == BrowseTabKind.extensions,
-                      );
-
-                      if (extensionIndex != -1) {
-                        widget.tabIndex(extensionIndex);
-                      }
-                    },
-                    icon: const Icon(Icons.extension_rounded),
-                    label: Text(context.l10n.show_extensions),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 12),
-                  child: Row(
-                    children: [
-                      Text(
-                        l10n.other,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: Column(
+                children: [
+                  const ExtensionServerWarningBanner(),
+                  const SizedBox(height: 12),
+                  // แบนเนอร์อ่านมังงะ/การ์ตูนอัตโนมัติ (Up-Manga) โดยไม่ต้องติดตั้ง Extension
+                  Card(
+                    color: const Color(0xFF1E1E26),
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: Colors.amberAccent, width: 1.2),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.amberAccent.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.movie_filter_rounded,
+                                  color: Colors.amberAccent,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              const Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'การ์ตูนและมังงะออนไลน์ (Up-Manga)',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      'อัปเดตตอนใหม่ทุกวัน • ระบบพากย์เสียงไทยอัตโนมัติ (ZirconX)',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.amberAccent,
+                                foregroundColor: Colors.black,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const CinemaQuickViewerModal(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.play_circle_fill_rounded),
+                              label: const Text(
+                                'เปิดดูการ์ตูนล่าสุดทันที',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                SourceListTile(
-                  source: Source(
-                    name: "local",
-                    lang: "",
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(context.l10n.no_sources_installed),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        final extensionIndex = widget.tabs.indexWhere(
+                          (t) =>
+                              t.type == widget.itemType &&
+                              t.kind == BrowseTabKind.extensions,
+                        );
+
+                        if (extensionIndex != -1) {
+                          widget.tabIndex(extensionIndex);
+                        }
+                      },
+                      icon: const Icon(Icons.extension_rounded),
+                      label: Text(context.l10n.show_extensions),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: Row(
+                      children: [
+                        Text(
+                          l10n.other,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SourceListTile(
+                    source: Source(
+                      name: "local",
+                      lang: "",
+                      itemType: widget.itemType,
+                    ),
                     itemType: widget.itemType,
                   ),
-                  itemType: widget.itemType,
-                ),
-              ],
+                ],
+              ),
             );
           }
           final lastUsedEntries = sources.where((e) => e.lastUsed!).toList();
